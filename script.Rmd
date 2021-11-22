@@ -1,0 +1,98 @@
+---
+title: "geologic contacts script"
+author: "Judy Malas"
+date: "11/22/2021"
+output: html_document
+---
+
+```{r load-packages}
+
+library(tidyverse)
+
+
+```
+
+
+```{r}
+january = read_csv("data/LST_at_contacts_sahara.csv")
+
+str(january)
+  
+```
+
+```{r histogram}
+
+ggplot(january, aes(LST_01)) + 
+  geom_histogram() +
+  theme_classic() +
+  labs(x = " January Land Surface Temperature")
+
+```
+```{r q-q-plot}
+library(ggpubr)
+ggqqplot(january$LST_01)
+
+
+```
+
+```{r shapiro-wilk test}
+shapiro.test(january$LST_01)
+
+```
+
+
+```{r lilliefors-test}
+
+library(nortest)
+lillie.test(january$LST_01) 
+
+```
+
+Seperate by lithology
+volcanic = 2 
+sedimentary = 3
+```{r new-col-litho}
+january = january %>% 
+  mutate(litho = ifelse(glim == 2, "volcanic", "sedimentary"))
+           
+
+```
+
+
+Subset by litho variable 
+```{r subset-by-litho}
+
+january_volc = january %>% 
+  filter(litho == "volcanic")
+
+january_volc 
+
+january_sed  = january %>%  
+  filter(litho == "sedimentary")
+
+january_sed
+
+
+```
+
+```{r}
+
+ggplot(january_volc, aes(LST_01)) + 
+  geom_histogram(alpha = 0.5) +
+  theme_classic() +
+  labs(x = " January Land Surface Temperature (Volcanic)")
+
+
+ggplot(january_sed, aes(LST_01)) + 
+  geom_histogram(alpha = 0.5) +
+  theme_classic() +
+  labs(x = " January Land Surface Temperature (Sedimentary)")
+
+```
+```{r}
+
+lillie.test(january_volc$LST_01) 
+lillie.test(january_sed$LST_01) 
+
+```
+
