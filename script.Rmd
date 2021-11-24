@@ -8,12 +8,14 @@ output: html_document
 ```{r load-packages}
 
 library(tidyverse)
-
+library(nortest)
+library(ggpubr)
+library(forcats)
 
 ```
 
 
-```{r}
+```{r read-jan-data}
 january = read_csv("data/LST_at_contacts_sahara.csv")
 
 str(january)
@@ -28,8 +30,9 @@ ggplot(january, aes(LST_01)) +
   labs(x = " January Land Surface Temperature")
 
 ```
+
 ```{r q-q-plot}
-library(ggpubr)
+
 ggqqplot(january$LST_01)
 
 
@@ -40,15 +43,12 @@ shapiro.test(january$LST_01)
 
 ```
 
-
 ```{r lilliefors-test}
 
-library(nortest)
 lillie.test(january$LST_01) 
 
 ```
 
-Seperate by lithology
 volcanic = 2 
 sedimentary = 3
 ```{r new-col-litho}
@@ -59,7 +59,6 @@ january = january %>%
 ```
 
 
-Subset by litho variable 
 ```{r subset-by-litho}
 
 january_volc = january %>% 
@@ -75,7 +74,7 @@ january_sed
 
 ```
 
-```{r}
+```{r january-hist-by-litho}
 
 ggplot(january_volc, aes(LST_01)) + 
   geom_histogram(alpha = 0.5) +
@@ -89,10 +88,198 @@ ggplot(january_sed, aes(LST_01)) +
   labs(x = " January Land Surface Temperature (Sedimentary)")
 
 ```
-```{r}
+
+```{r january-lilli-tests}
 
 lillie.test(january_volc$LST_01) 
 lillie.test(january_sed$LST_01) 
+
+```
+
+```{r jan-wilcox.test}
+wilcox.test(january$LST_01~january$litho)
+wilcox.test(january_sed$LST_01, january_volc$LST_01)
+
+```
+
+```{r jan-kruskal-test}
+kruskal.test(january$LST_01~january$litho)
+
+```
+
+```{r import-all-months-dataset}
+
+full = read_csv("data/all_months_LST_at_contacts_sahara_20211122.csv")
+
+
+
+```
+
+```{r pivot-dataset-longer}
+
+full_pivot = pivot_longer(full, 8:19, names_to = "month", values_to = "LST")
+
+
+
+```
+
+```{r tidy}
+
+full_tidy = full_pivot %>% 
+  mutate(month_names = case_when(month == "LST_01" ~ "January", 
+                                 month == "LST_02" ~ "February", 
+                                 month == "LST_03" ~ "March", 
+                                 month == "LST_04" ~ "April", 
+                                 month == "LST_05" ~ "May", 
+                                 month == "LST_06" ~ "June", 
+                                 month == "LST_07" ~ "July", 
+                                 month == "LST_08" ~ "August", 
+                                 month == "LST_09" ~ "September", 
+                                 month == "LST_10" ~ "October", 
+                                 month == "LST_11" ~ "November", 
+                                 month == "LST_12" ~ "December", 
+                           TRUE ~ month))
+
+full_tidy %>% 
+  filter(month_names == "January") #sanity check
+
+full_tidy = full_tidy %>% 
+  mutate(litho = ifelse(glim == 2, "Volcanic", "Sedimentary"))
+
+full_tidy = full_tidy %>% 
+  mutate(month_names = fct_relevel(month_names, "January", 
+                                   "February", 
+                                   "March", 
+                                   "April", 
+                                   "May", 
+                                   "June",
+                                   "July", 
+                                   "August",
+                                   "September", 
+                                   "October", 
+                                   "November",
+                                   "December"))
+
+```
+
+```{r exploratory-vis-histo-by-month}
+
+all_months = full_tidy %>% 
+  ggplot(aes(LST, fill = litho)) +
+  geom_histogram()+
+  facet_wrap(month_names~litho, ncol = 4)+
+  theme_classic()+
+   labs(x = "Land Surface Temperature", y = "Count", fill = " " )
+
+all_months
+
+```
+
+
+```{r exploratory-vist-scatter}
+
+scatter_all_months = 
+  ggplot(full_tidy, aes(month_names, LST, color = litho)) +
+  geom_point(alpha= 0.5)+ 
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(x = "", y = "Land Surface Temperature", color = "")
+
+scatter_all_months
+
+
+```
+
+
+```{r box-plots}
+
+ggplot(full_tidy, aes(month_names, LST, color = litho)) +
+  geom_boxplot()+ 
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(x = "", y = "Land Surface Temperature", color = "")+
+  coord_flip()
+
+
+```
+
+
+```{r subset-by-month}
+
+january = full_tidy %>% 
+  filter(month_names == "January")
+
+feburary = full_tidy %>% 
+  filter(month_names == "February")
+
+
+march = full_tidy %>% 
+  filter(month_names == "March")
+
+april = full_tidy %>% 
+  filter(month_names == "April")
+
+may = full_tidy %>% 
+  filter(month_names == "May")
+
+june = full_tidy %>% 
+  filter(month_names == "June")
+
+july = full_tidy %>% 
+  filter(month_names == "July")
+
+august = full_tidy %>% 
+  filter(month_names == "August")
+
+september = full_tidy %>% 
+  filter(month_names == "September")
+
+october = full_tidy %>% 
+  filter(month_names == "October")
+
+november = full_tidy %>% 
+  filter(month_names == "November")
+
+december = full_tidy %>% 
+  filter(month_names == "December")
+
+
+```
+
+```{r wilcox-tests}
+
+wilcox.test(january$LST~january$litho)
+
+wilcox.test(feburary$LST~feburary$litho)
+
+wilcox.test(march$LST~march$litho)
+
+wilcox.test(april$LST~april$litho)
+
+wilcox.test(may$LST~may$litho)
+
+wilcox.test(june$LST~june$litho)
+
+wilcox.test(july$LST~july$litho)
+
+wilcox.test(august$LST~august$litho)
+
+wilcox.test(september$LST~september$litho)
+
+wilcox.test(october$LST~october$litho)
+
+wilcox.test(november$LST~november$litho)
+
+wilcox.test(december$LST~december$litho)
+
+```
+
+
+```{r lillie-tests}
+
+
+
+
 
 ```
 
