@@ -14,7 +14,7 @@ library(forcats)
 
 ```
 
-
+Starting off by trying out the dataset for just the month of January
 ```{r read-jan-data}
 january = read_csv("data/LST_at_contacts_sahara.csv")
 
@@ -57,7 +57,6 @@ january = january %>%
            
 
 ```
-
 
 ```{r subset-by-litho}
 
@@ -115,6 +114,32 @@ full = read_csv("data/all_months_LST_at_contacts_sahara_20211122.csv")
 
 ```
 
+```{r import-data-set-with-elevation}
+
+elevation_data = read_csv("data/LST_at_contacts_sahara_20211124.csv")
+
+ind = seq(1, nrow(elevation_data), by = 2)
+
+elevation_data = elevation_data[-ind, ]
+
+elevation_data$...1 = elevation_data$index
+
+
+left_join(full_tidy, elevation_data, by = index)
+ 
+
+
+```
+
+```{r plot-elevation-v-altitude}
+
+
+
+
+```
+
+
+
 ```{r pivot-dataset-longer}
 
 full_pivot = pivot_longer(full, 8:19, names_to = "month", values_to = "LST")
@@ -160,6 +185,9 @@ full_tidy = full_tidy %>%
                                    "November",
                                    "December"))
 
+
+full_tidy$index = full_tidy$...1
+
 ```
 
 ```{r exploratory-vis-histo-by-month}
@@ -175,7 +203,6 @@ all_months
 
 ```
 
-
 ```{r exploratory-vist-scatter}
 
 scatter_all_months = 
@@ -190,7 +217,6 @@ scatter_all_months
 
 ```
 
-
 ```{r box-plots}
 
 ggplot(full_tidy, aes(month_names, LST, color = litho)) +
@@ -202,7 +228,6 @@ ggplot(full_tidy, aes(month_names, LST, color = litho)) +
 
 
 ```
-
 
 ```{r subset-by-month}
 
@@ -274,11 +299,144 @@ wilcox.test(december$LST~december$litho)
 
 ```
 
+```{r subset-by-month-and-litho}
+
+january_sed = full_tidy %>% 
+  filter(month_names == "January", litho == "Sedimentary")
+
+january_volc = full_tidy %>% 
+  filter(month_names == "January", litho == "Volcanic")
+
+feburary_sed = full_tidy %>% 
+  filter(month_names == "February", litho == "Sedimentary")
+
+feburary_volc = full_tidy %>% 
+  filter(month_names == "February", litho =="Volcanic")
+
+march_sed = full_tidy %>% 
+ filter(month_names == "March", litho == "Sedimentary")
+
+march_volc = full_tidy %>% 
+  filter(month_names == "March", litho =="Volcanic")
+
+april_volc = full_tidy %>% 
+  filter(month_names == "April", litho =="Volcanic")
+
+april_sed = full_tidy %>% 
+  filter(month_names == "April", litho == "Sedimentary")
+
+may_volc = full_tidy %>% 
+  filter(month_names == "May", litho =="Volcanic")
+
+may_sed = full_tidy %>% 
+  filter(month_names == "May", litho == "Sedimentary")
+
+june_volc = full_tidy %>% 
+  filter(month_names == "June", litho =="Volcanic")
+
+june_sed = full_tidy %>% 
+  filter(month_names == "June", litho =="Sedimentary")
+
+july_volc = full_tidy %>% 
+  filter(month_names == "July", litho =="Volcanic")
+
+july_sed = full_tidy %>% 
+  filter(month_names == "July", litho =="Sedimentary")
+
+august_volc = full_tidy %>% 
+  filter(month_names == "August", litho =="Volcanic")
+
+august_sed = full_tidy %>% 
+  filter(month_names == "August", litho =="Sedimentary")
+
+september_volc = full_tidy %>% 
+  filter(month_names == "September", litho =="Volcanic")
+
+september_sed = full_tidy %>% 
+  filter(month_names == "September", litho =="Sedimentary")
+
+october_volc = full_tidy %>% 
+  filter(month_names == "October", litho =="Volcanic")
+
+october_sed = full_tidy %>% 
+  filter(month_names == "October", litho =="Sedimentary")
+
+november_volc = full_tidy %>% 
+  filter(month_names == "November", litho =="Volcanic")
+
+november_sed = full_tidy %>% 
+  filter(month_names == "November", litho =="Sedimentary")
+
+december_volc = full_tidy %>% 
+  filter(month_names == "December", litho =="Volcanic")
+
+december_sed = full_tidy %>% 
+  filter(month_names == "December", litho =="Sedimentary")
+
+
+```
+
+```{r make-list}
+
+list = list(
+  january_sed[,9], january_volc[,9], feburary_sed[,9], feburary_volc[,9], 
+  march_sed[,9], march_volc[,9], april_volc[,9], april_sed[,9], 
+  may_volc[,9], may_sed[,9], june_volc[,9], june_sed[,9], july_volc[,9], july_sed[,9], 
+  august_volc[,9], august_sed[,9], september_volc[,9], september_sed[,9], 
+  october_volc[,9], october_sed[,9], november_volc[,9], november_sed[,9], december_volc[,9], 
+  december_sed[,9] 
+)
+
+```
 
 ```{r lillie-tests}
 
+lillie.test(january_sed$LST)
+lillie.test(january_volc$LST)
+
+lillie.test(feburary_sed$LST)
+lillie.test(feburary_volc$LST)
+
+lillie.test(march_sed$LST)
+lillie.test(march_volc$LST)
 
 
+lillie.test(april_sed$LST)
+lillie.test(april_volc$LST)
+
+
+lillie.test(may_sed$LST)
+lillie.test(may_volc$LST)
+
+lillie.test(june_sed$LST)
+lillie.test(june_volc$LST)
+
+
+lillie.test(july_sed$LST)
+lillie.test(july_volc$LST)
+
+lillie.test(august_sed$LST)
+lillie.test(august_volc$LST)
+
+lillie.test(september_sed$LST)
+lillie.test(september_volc$LST)
+
+lillie.test(october_sed$LST)
+lillie.test(october_volc$LST)
+
+lillie.test(november_sed$LST)
+lillie.test(november_volc$LST)
+
+lillie.test(december_sed$LST)
+lillie.test(december_volc$LST)
+```
+
+```{r qqplot}
+
+qqdec1 = ggqqplot(december_sed$LST)
+qqdec2 = ggqqplot(december_volc$LST)
+
+ggarrange(qqdec1, qqdec2)
 
 
 ```
