@@ -11,6 +11,7 @@ library(tidyverse)
 library(nortest)
 library(ggpubr)
 library(forcats)
+library(tidymodels)
 
 ```
 
@@ -106,6 +107,8 @@ kruskal.test(january$LST_01~january$litho)
 
 ```
 
+### Data analyses for all months
+
 ```{r import-all-months-dataset}
 
 full = read_csv("data/all_months_LST_at_contacts_sahara_20211122.csv")
@@ -113,32 +116,6 @@ full = read_csv("data/all_months_LST_at_contacts_sahara_20211122.csv")
 
 
 ```
-
-```{r import-data-set-with-elevation}
-
-elevation_data = read_csv("data/LST_at_contacts_sahara_20211124.csv")
-
-ind = seq(1, nrow(elevation_data), by = 2)
-
-elevation_data = elevation_data[-ind, ]
-
-elevation_data$...1 = elevation_data$index
-
-
-left_join(full_tidy, elevation_data, by = index)
- 
-
-
-```
-
-```{r plot-elevation-v-altitude}
-
-
-
-
-```
-
-
 
 ```{r pivot-dataset-longer}
 
@@ -219,15 +196,26 @@ scatter_all_months
 
 ```{r box-plots}
 
-ggplot(full_tidy, aes(month_names, LST, color = litho)) +
+box_plots = ggplot(full_tidy, aes(month_names, LST, color = litho)) +
   geom_boxplot()+ 
-  theme_classic()+
+  theme_dark()+
   theme(axis.text.x = element_text(angle = 90))+
-  labs(x = "", y = "Land Surface Temperature", color = "")+
-  coord_flip()
+  labs(x = "", y = "Land Surface Temperature", color = "")
+
+box_plots
 
 
 ```
+
+```{r}
+ggplot(full_tidy, aes(month_names, LST, color = litho)) +
+  geom_violin()+ 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(x = "", y = "Land Surface Temperature", color = "")
+
+```
+
 
 ```{r subset-by-month}
 
@@ -438,6 +426,116 @@ qqdec2 = ggqqplot(december_volc$LST)
 
 ggarrange(qqdec1, qqdec2)
 
+
+```
+
+```{r import-data-set-with-elevation}
+
+elevation_data = read_csv("data/LST_at_contacts_sahara_20211124.csv")
+
+ind = seq(1, nrow(elevation_data), by = 2)
+
+elevation_data = elevation_data[-ind, ]
+
+elevation_data$...1 = elevation_data$index
+
+
+tidy_with_elevation = left_join(full_tidy, elevation_data)
+
+```
+
+```{r visualize-elevation-by-contact}
+
+ggplot(tidy_with_elevation, aes(elevation)) +
+  geom_histogram()+
+  facet_wrap(~litho)+
+  theme_classic()
+
+```
+
+```{r elevation-v-landsurface-temp}
+
+elevation_landsurf = ggplot(tidy_with_elevation, aes(elevation, LST, color = litho)) +
+  geom_point()+
+  geom_smooth(method = lm)+ 
+  theme_classic()+ 
+  labs( y = "Land Surface Temperature", x= "Elevation") +
+  theme(legend.title = element_blank())
+
+elevation_landsurf
+
+
+```
+
+```{r linear-models}
+
+sedimentary_elevation_df = tidy_with_elevation %>% 
+  filter(litho == "Sedimentary")
+
+volcanic_elevation_df = tidy_with_elevation %>% 
+  filter(litho == "Volcanic")
+
+
+lm_all = linear_reg() %>% 
+  set_engine("lm") %>% 
+  fit(LST ~ elevation, data = tidy_with_elevation) %>% 
+  tidy()
+
+lm_volcanic = linear_reg() %>% 
+  set_engine("lm") %>% 
+  fit(LST ~ elevation, data = volcanic_elevation_df) 
+
+lm_sedimentary = linear_reg() %>% 
+  set_engine("lm") %>% 
+  fit(LST ~ elevation, data = sedimentary_elevation_df) 
+
+
+```
+
+```{r rsquared}
+
+linear_reg() %>% 
+  set_engine("lm") %>% 
+  fit(LST ~ elevation, data = tidy_with_elevation) %>% 
+  tidy()
+
+lm_all = linear_reg() %>% 
+  set_engine("lm") %>% 
+  fit(LST ~ elevation, data = tidy_with_elevation)
+
+glance(lm_all)$r.squared ##0.003842593
+
+
+```
+
+```{r summary-stats}
+
+summary(sedimentary_elevation_df$LST)
+
+summary(volcanic_elevation_df$LST)
+
+ggplot(tidy_with_elevation, aes(litho, LST, color = litho)) +
+  geom_boxplot()+ 
+  theme_classic()+
+  labs(y = "Land Surface Temperature", x = " ") +
+  theme(legend.position = "none")
+
+
+```
+
+```{r elevation-summary-stats}
+
+summary(volcanic_elevation_df$elevation)
+
+summary(sedimentary_elevation_df$elevation)
+
+```
+
+```{r LST-by-point}
+
+ggplot(tidy_with_elevation, aes(litho, LST, color= litho))+
+  geom_point()+ 
+  geom_smooth()
 
 ```
 
